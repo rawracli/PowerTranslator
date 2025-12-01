@@ -106,7 +106,7 @@ namespace Translator.Utils
             }
             return string.Join("&", res);
         }
-        public static List<Wox.Plugin.Result> ToResultList(this IEnumerable<ResultItem> src, string iconPath, PluginInitContext pluginInitContext)
+        public static List<Wox.Plugin.Result> ToResultList(this IEnumerable<ResultItem> src, string iconPath, PluginInitContext pluginInitContext, bool copyOnlyFirstOption = false)
         {
             return src.Select((item, idx) =>
             {
@@ -125,7 +125,15 @@ namespace Translator.Utils
                     }) :
                     ((e) =>
                     {
-                        UtilsFun.SetClipboardText(item.CopyTgt ?? item.Title);
+                        var textToCopy = item.CopyTgt ?? item.Title;
+                        // If copyOnlyFirstOption is true and output contains semicolon, copy only the first part
+                        if (copyOnlyFirstOption && (textToCopy.Contains(';') || textToCopy.Contains('；')))
+                        {
+                            // Split by both ASCII and Chinese semicolons
+                            var parts = textToCopy.Split(new[] { ';', '；' }, StringSplitOptions.None);
+                            textToCopy = parts[0].Trim();
+                        }
+                        UtilsFun.SetClipboardText(textToCopy);
                         return true;
                     }),
                     IcoPath = item.iconPath ?? iconPath,
